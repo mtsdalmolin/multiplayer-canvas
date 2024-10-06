@@ -28,6 +28,7 @@ const drawings = new Map<
   }
 >();
 let isDrawing = false;
+let drawingColor: string = STROKE_STYLE;
 let myCurrentId: UUID | undefined;
 
 (() => {
@@ -170,9 +171,10 @@ let myCurrentId: UUID | undefined;
           kind: "PlayerClientStartDrawing",
           x,
           y,
-          color: "white",
+          color: drawingColor,
           playerId: myCurrentId,
         };
+        console.log(pl)
         ws.send(JSON.stringify(pl));
       } else {
         console.error(
@@ -215,6 +217,21 @@ let myCurrentId: UUID | undefined;
     },
     false,
   );
+
+  const colorPicker = document.getElementById("color");
+  if (!colorPicker)
+    throw new Error(
+      "No color picker found. You won't be able to change your drawing color",
+    );
+
+  colorPicker.addEventListener("input", (evt: any) => {
+    const colorValue = evt.target.value;
+    if (!colorValue) {
+      drawingColor= "white";
+    } else {
+      drawingColor = colorValue;
+    }
+  });
 })();
 
 function draw(ctx: CanvasRenderingContext2D) {

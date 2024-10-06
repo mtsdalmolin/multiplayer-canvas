@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <title>Canvas test</title>
@@ -8,61 +8,142 @@
          License: none (public domain)
       */
 
-      html, body, div, span, applet, object, iframe,
-      h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-      a, abbr, acronym, address, big, cite, code,
-      del, dfn, em, img, ins, kbd, q, s, samp,
-      small, strike, strong, sub, sup, tt, var,
-      b, u, i, center,
-      dl, dt, dd, ol, ul, li,
-      fieldset, form, label, legend,
-      table, caption, tbody, tfoot, thead, tr, th, td,
-      article, aside, canvas, details, embed,
-      figure, figcaption, footer, header, hgroup,
-      menu, nav, output, ruby, section, summary,
-      time, mark, audio, video {
-          margin: 0;
-          padding: 0;
-          border: 0;
-          font-size: 100%;
-          font: inherit;
-          vertical-align: baseline;
+      html,
+      body,
+      div,
+      span,
+      applet,
+      object,
+      iframe,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      blockquote,
+      pre,
+      a,
+      abbr,
+      acronym,
+      address,
+      big,
+      cite,
+      code,
+      del,
+      dfn,
+      em,
+      img,
+      ins,
+      kbd,
+      q,
+      s,
+      samp,
+      small,
+      strike,
+      strong,
+      sub,
+      sup,
+      tt,
+      var,
+      b,
+      u,
+      i,
+      center,
+      dl,
+      dt,
+      dd,
+      ol,
+      ul,
+      li,
+      fieldset,
+      form,
+      label,
+      legend,
+      table,
+      caption,
+      tbody,
+      tfoot,
+      thead,
+      tr,
+      th,
+      td,
+      article,
+      aside,
+      canvas,
+      details,
+      embed,
+      figure,
+      figcaption,
+      footer,
+      header,
+      hgroup,
+      menu,
+      nav,
+      output,
+      ruby,
+      section,
+      summary,
+      time,
+      mark,
+      audio,
+      video {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
       }
       /* HTML5 display-role reset for older browsers */
-      article, aside, details, figcaption, figure,
-      footer, header, hgroup, menu, nav, section {
-          display: block;
+      article,
+      aside,
+      details,
+      figcaption,
+      figure,
+      footer,
+      header,
+      hgroup,
+      menu,
+      nav,
+      section {
+        display: block;
       }
       body {
-          line-height: 1;
+        line-height: 1;
       }
-      ol, ul {
-          list-style: none;
+      ol,
+      ul {
+        list-style: none;
       }
-      blockquote, q {
-          quotes: none;
+      blockquote,
+      q {
+        quotes: none;
       }
-      blockquote:before, blockquote:after,
-      q:before, q:after {
-          content: '';
-          content: none;
+      blockquote:before,
+      blockquote:after,
+      q:before,
+      q:after {
+        content: "";
+        content: none;
       }
       table {
-          border-collapse: collapse;
-          border-spacing: 0;
+        border-collapse: collapse;
+        border-spacing: 0;
       }
       /* end reset.css */
 
       body {
-	  height: 100vh;
-          background: #181818;
-          color: #FFFFFF;
-	  display: flex;
-	  align-items: center;
+        height: 100vh;
+        background: #181818;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
       }
       canvas {
-	  outline: 1px solid red;
-	  margin: auto;
+        outline: 1px solid red;
+        margin: auto;
       }
       /*
       @media (min-aspect-ratio: 16/9) {
@@ -81,10 +162,133 @@
               transform: translate(0%, -50%)
           }
       }*/
+      main {
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      ul {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .key {
+        --radius: 4vmin;
+        --red: rgb(255, 100, 100);
+        --green: rgb(100, 200, 100);
+        --blue: rgb(100, 100, 255);
+        width: 7vmin;
+        height: 6vmin;
+        padding: 0.6vmin 0.6vmin 0.9vmin;
+        top: 0.5vmin;
+        position: relative;
+        overflow: hidden;
+        border-radius: calc(var(--radius) * 0.5);
+      }
+      .key:before {
+        content: "";
+        width: 400vmin;
+        height: 400vmin;
+        position: absolute;
+        top: 150%;
+        left: 150%;
+        transform: translate(-50%, -50%);
+      }
+      .key-content {
+        width: 100%;
+        height: 100%;
+        background-color: #111;
+        position: relative;
+        border-radius: calc(var(--radius) * 0.4);
+        font-size: 2vmin;
+        top: -0.3vmin;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        z-index: 1;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        box-shadow: 0 0.6vmin rgba(0, 0, 0, 0.6);
+      }
     </style>
   </head>
   <body>
-    <canvas id="game"></canvas>
+    <main>
+      <canvas id="game"></canvas>
+      <section>
+        <nav>
+          <ul>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">1</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">2</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">3</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">4</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">5</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">6</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">7</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">8</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">9</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <button class="key-content" type="button">0</button>
+              </div>
+            </li>
+            <li>
+              <div class="key">
+                <input
+                  class="key-content"
+                  type="color"
+                  name="color"
+                  id="color"
+                  value="white"
+                />
+              </div>
+            </li>
+          </ul>
+        </nav>
+      </section>
+    </main>
     <script type="module" src="index.js"></script>
   </body>
 </html>
