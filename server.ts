@@ -1,6 +1,17 @@
 import crypto from "crypto";
 import { WebSocketServer, WebSocket } from "ws";
-import { MousePosition, Player, UUID } from "./common.js";
+import {
+  MousePosition,
+  Player,
+  PlayerClientSideMovingEvent,
+  PlayerClientStartDrawingEvent,
+  PlayerClientStopDrawingEvent,
+  PlayerDrawingEvent,
+  PlayerJoinedEvent,
+  PlayerLeftEvent,
+  PlayerMovedEvent,
+  UUID,
+} from "./common.js";
 
 interface PlayerOnServer extends Player {
   ws: WebSocket;
@@ -60,19 +71,9 @@ wss.on("connection", (ws, req) => {
 
   ws.addEventListener("message", (event: { data: any }) => {
     const parsedEventData = JSON.parse(event.data) as
-      | {
-        kind: "PlayerClientSideMoving";
-        x: number;
-        y: number;
-      }
-      | {
-        kind: "PlayerClientStartDrawing";
-        x: number;
-        y: number;
-        playerId: UUID;
-        color: string;
-      }
-      | { kind: "PlayerClientStopDrawing" };
+      | PlayerClientSideMovingEvent
+      | PlayerClientStopDrawingEvent
+      | PlayerClientStartDrawingEvent;
 
     switch (parsedEventData.kind) {
       case "PlayerClientSideMoving":
@@ -158,7 +159,7 @@ function tick() {
             JSON.stringify({
               kind: "PlayerJoined",
               id: joinedId,
-            }),
+            } as PlayerJoinedEvent),
           );
 
           players.forEach((otherPlayer) => {
@@ -167,7 +168,7 @@ function tick() {
                 JSON.stringify({
                   kind: "PlayerJoined",
                   id: otherPlayer.id,
-                }),
+                } as PlayerJoinedEvent),
               );
           });
         }
@@ -183,7 +184,7 @@ function tick() {
               JSON.stringify({
                 kind: "PlayerJoined",
                 id: joinedId,
-              }),
+              } as PlayerJoinedEvent),
             );
           });
         }
@@ -200,7 +201,7 @@ function tick() {
             JSON.stringify({
               kind: "PlayerLeft",
               id: leftId,
-            }),
+            } as PlayerLeftEvent),
           );
         }
       });
@@ -218,7 +219,7 @@ function tick() {
               id: movingId,
               x: movingPosition.x,
               y: movingPosition.y,
-            }),
+            } as PlayerMovedEvent),
           );
         }
       });
@@ -228,17 +229,15 @@ function tick() {
   if (drawings.size > 0) {
     for (const [drawingId, { paths, playerId, color }] of drawings) {
       players.forEach((player) => {
-        if (player.id !== playerId) {
-          player.ws.send(
-            JSON.stringify({
-              kind: "PlayerDrawing",
-              drawingId,
-              paths,
-              playerId,
-              color
-            }),
-          );
-        }
+        player.ws.send(
+          JSON.stringify({
+            kind: "PlayerDrawing",
+            drawingId,
+            paths,
+            playerId,
+            color,
+          } as PlayerDrawingEvent),
+        );
       });
     }
   }

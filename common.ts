@@ -30,3 +30,46 @@ export interface Player {
 }
 
 export type UUID = ReturnType<typeof crypto.randomUUID>;
+
+export type DrawingPath = { x: number; y: number };
+
+// Events
+export interface PlayerJoinedEvent {
+  kind: "PlayerJoined";
+  id: ReturnType<typeof crypto.randomUUID>;
+}
+export interface PlayerLeftEvent {
+  kind: "PlayerLeft";
+  id: ReturnType<typeof crypto.randomUUID>;
+}
+export interface PlayerMovedEvent {
+  kind: "PlayerMoved";
+  id: ReturnType<typeof crypto.randomUUID>;
+  x: number;
+  y: number;
+}
+export interface PlayerDrawingEvent {
+  kind: "PlayerDrawing";
+  drawingId: UUID;
+  paths: DrawingPath[];
+  playerId: UUID;
+  color: string;
+}
+export interface PlayerClientSideMovingEvent {
+  kind: "PlayerClientSideMoving";
+  x: number;
+  y: number;
+  isDrawing: boolean;
+}
+export interface PlayerClientStartDrawingEvent {
+  kind: "PlayerClientStartDrawing";
+  x: number;
+  y: number;
+  color: string;
+  playerId: UUID;
+}
+export interface PlayerClientStopDrawingEvent {
+  kind: "PlayerClientStopDrawing";
+  x: number;
+  y: number;
+}
