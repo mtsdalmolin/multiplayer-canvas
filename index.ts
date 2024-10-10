@@ -1,7 +1,11 @@
 import {
   DrawingPath,
+  HandshakeEvent,
+  isUUID,
   MousePosition,
   Player,
+  PlayerClientCreateSessionEvent,
+  PlayerClientJoinSessionEvent,
   PlayerClientSideMovingEvent,
   PlayerClientStartDrawingEvent,
   PlayerClientStopDrawingEvent,
@@ -9,6 +13,7 @@ import {
   PlayerJoinedEvent,
   PlayerLeftEvent,
   PlayerMovedEvent,
+  SessionCreatedEvent,
   UUID,
 } from "./common.js";
 
@@ -16,7 +21,7 @@ let currX = 0;
 let currY = 0;
 let prevX = 0;
 let prevY = 0;
-let STROKE_STYLE = "white";
+let STROKE_STYLE = "#ffffff";
 let LINE_WIDTH = 2;
 const factor = 80;
 const drawings = new Map<
@@ -32,6 +37,13 @@ let drawingColor: string = STROKE_STYLE;
 let myCurrentId: UUID | undefined;
 
 (() => {
+  const searchParams = new URLSearchParams(location.search);
+  let sessionId = searchParams.get("sessionId");
+
+  const colorPicker = document.getElementById("color") as HTMLInputElement;
+  if (!colorPicker) throw new Error("No color picker found.");
+  colorPicker.value = STROKE_STYLE;
+
   const canvas = document.getElementById("game") as HTMLCanvasElement;
   if (canvas === null) throw new Error("No canvas with id `game` is found");
   canvas.width = 16 * factor;
@@ -47,14 +59,42 @@ let myCurrentId: UUID | undefined;
   ws.addEventListener("error", (event) => {
     console.log("WEBSOCKET ERROR", event);
   });
+  ws.addEventListener("open", (event) => {
+    if (sessionId) {
+      ws.send(
+        JSON.stringify({
+          kind: "PlayerClientJoinSession",
+          sessionId,
+        } as PlayerClientJoinSessionEvent),
+      );
+    }
+    console.log("connected", event);
+  });
   ws.addEventListener("message", (event) => {
     const parsedEventData = JSON.parse(event.data) as
+      | HandshakeEvent
+      | SessionCreatedEvent
       | PlayerJoinedEvent
       | PlayerLeftEvent
       | PlayerMovedEvent
       | PlayerDrawingEvent;
 
     switch (parsedEventData.kind) {
+      case "SessionCreated":
+        {
+          sessionId = parsedEventData.sessionId;
+          const url = new URL(window.location as any);
+          url.searchParams.set("sessionId", sessionId);
+          window.history.pushState({}, "", url);
+        }
+        break;
+
+      case "Handshake":
+        {
+          myCurrentId = parsedEventData.id;
+        }
+        break;
+
       case "PlayerJoined":
         {
           if (players.size === 0) {
@@ -76,7 +116,7 @@ let myCurrentId: UUID | undefined;
 
           if (!movingPlayer) {
             console.error("Badly formatted payload", parsedEventData);
-            ws.close();
+            ws.close(3001, "movingPlayer");
             return;
           }
 
@@ -149,13 +189,16 @@ let myCurrentId: UUID | undefined;
       const x = e.clientX - ctx.canvas.offsetLeft;
       const y = e.clientY - ctx.canvas.offsetTop;
 
-      const pl: PlayerClientSideMovingEvent = {
-        kind: "PlayerClientSideMoving",
-        x,
-        y,
-        isDrawing,
-      };
-      ws.send(JSON.stringify(pl));
+      if (myCurrentId && sessionId && isUUID(sessionId)) {
+        const pl: PlayerClientSideMovingEvent = {
+          kind: "PlayerClientSideMoving",
+          x,
+          y,
+          isDrawing,
+          sessionId,
+        };
+        ws.send(JSON.stringify(pl));
+      }
     },
     false,
   );
@@ -167,20 +210,22 @@ let myCurrentId: UUID | undefined;
       const y = e.clientY - ctx.canvas.offsetTop;
 
       if (myCurrentId) {
-        const pl: PlayerClientStartDrawingEvent = {
-          kind: "PlayerClientStartDrawing",
-          x,
-          y,
-          color: drawingColor,
-          playerId: myCurrentId,
-        };
-        console.log(pl)
-        ws.send(JSON.stringify(pl));
+        if (sessionId && isUUID(sessionId)) {
+          const pl: PlayerClientStartDrawingEvent = {
+            kind: "PlayerClientStartDrawing",
+            x,
+            y,
+            color: drawingColor,
+            playerId: myCurrentId,
+            sessionId,
+          };
+          ws.send(JSON.stringify(pl));
+        }
       } else {
         console.error(
           "Your id is not defined. Please refresh the page to try again",
         );
-        ws.close();
+        ws.close(3001, "start drawing");
       }
     },
     false,
@@ -192,12 +237,15 @@ let myCurrentId: UUID | undefined;
       const x = e.clientX - ctx.canvas.offsetLeft;
       const y = e.clientY - ctx.canvas.offsetTop;
 
-      const pl: PlayerClientStopDrawingEvent = {
-        kind: "PlayerClientStopDrawing",
-        x,
-        y,
-      };
-      ws.send(JSON.stringify(pl));
+      if (myCurrentId && sessionId && isUUID(sessionId)) {
+        const pl: PlayerClientStopDrawingEvent = {
+          kind: "PlayerClientStopDrawing",
+          x,
+          y,
+          sessionId,
+        };
+        ws.send(JSON.stringify(pl));
+      }
     },
     false,
   );
@@ -208,29 +256,33 @@ let myCurrentId: UUID | undefined;
       const x = e.clientX - ctx.canvas.offsetLeft;
       const y = e.clientY - ctx.canvas.offsetTop;
 
-      const pl: PlayerClientStopDrawingEvent = {
-        kind: "PlayerClientStopDrawing",
-        x,
-        y,
-      };
-      ws.send(JSON.stringify(pl));
+      if (myCurrentId && sessionId && isUUID(sessionId)) {
+        const pl: PlayerClientStopDrawingEvent = {
+          kind: "PlayerClientStopDrawing",
+          x,
+          y,
+          sessionId,
+        };
+        ws.send(JSON.stringify(pl));
+      }
     },
     false,
   );
 
-  const colorPicker = document.getElementById("color");
-  if (!colorPicker)
-    throw new Error(
-      "No color picker found. You won't be able to change your drawing color",
-    );
-
   colorPicker.addEventListener("input", (evt: any) => {
     const colorValue = evt.target.value;
     if (!colorValue) {
-      drawingColor= "white";
+      drawingColor = "white";
     } else {
       drawingColor = colorValue;
     }
+  });
+
+  document.getElementById("create-session")?.addEventListener("click", () => {
+    const pl: PlayerClientCreateSessionEvent = {
+      kind: "PlayerClientCreateSession",
+    };
+    ws.send(JSON.stringify(pl));
   });
 })();
 
